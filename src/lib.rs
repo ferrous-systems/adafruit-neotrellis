@@ -2,7 +2,7 @@
 
 use embedded_hal::blocking::{
     i2c::{Read, Write},
-    delay::DelayUs,
+    // delay::DelayUs,
 };
 
 pub use adafruit_seesaw::{
@@ -18,18 +18,18 @@ pub use adafruit_seesaw::{
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-pub struct NeoTrellis<I2C, DELAY> {
-    pub seesaw: SeeSaw<I2C, DELAY>,
+pub struct NeoTrellis<I2C> {
+    pub seesaw: SeeSaw<I2C>,
     pub neopixel_settings: NeoPixelSettings,
 }
 
-pub struct NeoPixels<'a, I2C, DELAY> {
-    seesaw: &'a mut SeeSaw<I2C, DELAY>,
+pub struct NeoPixels<'a, I2C> {
+    seesaw: &'a mut SeeSaw<I2C>,
     settings: &'a mut NeoPixelSettings,
 }
 
-pub struct KeyPad<'a, I2C, DELAY> {
-    seesaw: &'a mut SeeSaw<I2C, DELAY>,
+pub struct KeyPad<'a, I2C> {
+    seesaw: &'a mut SeeSaw<I2C>,
 }
 
 pub struct NeoPixelSettings {
@@ -37,12 +37,12 @@ pub struct NeoPixelSettings {
     led_type: ColorOrder,
 }
 
-impl<I2C, DELAY> NeoTrellis<I2C, DELAY>
+impl<I2C> NeoTrellis<I2C>
 where
     I2C: Read + Write,
-    DELAY: DelayUs<u32>,
+    // DELAY: DelayUs<u32>,
 {
-    pub fn new(i2c: I2C, delay: DELAY, address: Option<u8>) -> Result<Self> {
+    pub fn new(i2c: I2C, address: Option<u8>) -> Result<Self> {
         let neopixel_settings = NeoPixelSettings {
             leds_ct: 16,
             led_type: ColorOrder::GRB
@@ -50,7 +50,7 @@ where
 
         let mut seesaw = SeeSaw {
             i2c,
-            delay,
+            // delay,
             address: address.unwrap_or_else(|| 0x2E),
         };
 
@@ -64,28 +64,28 @@ where
         }
     }
 
-    pub fn neopixels(&mut self) -> NeoPixels<I2C, DELAY> {
+    pub fn neopixels(&mut self) -> NeoPixels<I2C> {
         NeoPixels {
             seesaw: &mut self.seesaw,
             settings: &mut self.neopixel_settings,
         }
     }
 
-    pub fn keypad(&mut self) -> KeyPad<I2C, DELAY> {
+    pub fn keypad(&mut self) -> KeyPad<I2C> {
         KeyPad {
             seesaw: &mut self.seesaw,
         }
     }
 
-    pub fn seesaw(&mut self) -> &mut SeeSaw<I2C, DELAY> {
+    pub fn seesaw(&mut self) -> &mut SeeSaw<I2C> {
         &mut self.seesaw
     }
 }
 
-impl<'a, I2C, DELAY> NeoPixels<'a, I2C, DELAY>
+impl<'a, I2C> NeoPixels<'a, I2C>
 where
     I2C: Read + Write,
-    DELAY: DelayUs<u32>,
+    // DELAY: DelayUs<u32>,
 {
     pub fn set_speed(&'a mut self, speed: Speed) -> Result<&'a mut Self> {
         self.seesaw.neopixel_set_speed(speed)?;
@@ -136,10 +136,10 @@ where
     }
 }
 
-impl<'a, I2C, DELAY> KeyPad<'a, I2C, DELAY>
+impl<'a, I2C> KeyPad<'a, I2C>
 where
     I2C: Read + Write,
-    DELAY: DelayUs<u32>,
+    // DELAY: DelayUs<u32>,
 {
     pub fn pending_events(&mut self) -> Result<u8> {
         self.seesaw.keypad_get_count()
