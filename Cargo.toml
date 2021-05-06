@@ -9,9 +9,28 @@ edition = "2018"
 [dependencies]
 embedded-hal = "0.2.3"
 # # when trying unpushed stuff use
+adafruit-seesaw = { path = "../adafruit-seesaw" }
+
+# [dependencies.adafruit-seesaw]
+# git = "https://github.com/ferrous-systems/adafruit-seesaw"
+# branch = "try_shared_bus_crate"
 # adafruit-seesaw = { path = "../adafruit-seesaw" }
 
-[dependencies.adafruit-seesaw]
-git = "https://github.com/ferrous-systems/adafruit-seesaw"
-branch = "try_shared_bus_crate"
-adafruit-seesaw = { path = "../adafruit-seesaw" }
+defmt = "0.2.0"
+defmt-rtt = "0.2.0"
+panic-probe = { version = "0.2.0", features = ["print-defmt"] }
+
+[features]
+# set logging levels here
+default = [
+  "defmt-default",
+  # "dependency-a/defmt-trace",
+]
+
+# do NOT modify these features
+defmt-default = []
+defmt-trace = []
+defmt-debug = []
+defmt-info = []
+defmt-warn = []
+defmt-error = []

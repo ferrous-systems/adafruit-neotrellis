@@ -1,4 +1,6 @@
 #![no_std]
+use defmt::Format; // <- derive attribute
+
 
 use embedded_hal::blocking::{
     i2c::{Read, Write},
@@ -158,7 +160,6 @@ where
 
             // What is this math even? Copy/paste from adafruit code
             let key = ((key) / 8) * 4 + ((key) % 8);
-
             Ok(Some(KeyEvent { key, event }))
         } else {
             Ok(None)
@@ -218,6 +219,7 @@ where
 const MAX_EVENTS_USIZE: usize = 16;
 const MAX_EVENTS_U8: u8 = 16;
 
+#[derive(Format)]
 pub struct Events {
     count: u8,
     events: [KeyEvent; MAX_EVENTS_USIZE]
