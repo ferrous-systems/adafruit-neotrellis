@@ -7,7 +7,6 @@ use embedded_hal::blocking::{
     delay::DelayUs,
 };
 
-use nrf52840_hal::Timer as Timer;
 
 pub use adafruit_seesaw::{
     SeeSaw,
