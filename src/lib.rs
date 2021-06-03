@@ -5,7 +5,6 @@ use defmt::Format; // <- derive attribute
 use embedded_hal::blocking::{
     i2c::{Read, Write},
     delay::DelayUs,
-    // DELAY: Timer<u32>,
 };
 
 use nrf52840_hal::Timer as Timer;
@@ -45,8 +44,6 @@ pub struct NeoPixelSettings {
 impl<I2C> NeoTrellis<I2C>
 where
     I2C: Read + Write,
-    // DELAY: DelayUs<u32>,
-    // DELAY: Timer<u32>,
 {
     pub fn new<DELAY: DelayUs<u32>>(i2c: I2C, delay: &mut DELAY, address: Option<u8>) -> Result<Self> {
         let neopixel_settings = NeoPixelSettings {
@@ -91,7 +88,6 @@ impl<'a, I2C> NeoPixels<'a, I2C>
 where
     I2C: Read + Write,
 
-    // DELAY: Timer<u32>,
 {
     pub fn set_speed(&'a mut self, speed: Speed) -> Result<&'a mut Self> {
         self.seesaw.neopixel_set_speed(speed)?;
@@ -146,7 +142,6 @@ impl<'a, I2C> KeyPad<'a, I2C>
 where
     I2C: Read + Write,
 
-    // DELAY: Timer<u32>,
 {
     pub fn pending_events<DELAY: DelayUs<u32>>(&mut self, delay: &mut DELAY) -> Result<u8> {
         self.seesaw.keypad_get_count(delay)
