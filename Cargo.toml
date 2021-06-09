@@ -8,14 +8,8 @@ edition = "2018"
 
 [dependencies]
 embedded-hal = "0.2.3"
-# # when trying unpushed stuff use
-adafruit-seesaw = { path = "../adafruit-seesaw" }
 nrf52840-hal = "0.12.2"
-
-# [dependencies.adafruit-seesaw]
-# git = "https://github.com/ferrous-systems/adafruit-seesaw"
-# branch = "try_shared_bus_crate"
-# adafruit-seesaw = { path = "../adafruit-seesaw" }
+adafruit-seesaw = { git ="https://github.com/ferrous-systems/adafruit-seesaw", branch = "main"}
 
 defmt = "0.2.0"
 defmt-rtt = "0.2.0"
