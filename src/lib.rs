@@ -1,9 +1,12 @@
 #![no_std]
+use defmt::Format; // <- derive attribute
+
 
 use embedded_hal::blocking::{
     i2c::{Read, Write},
     delay::DelayUs,
 };
+
 
 pub use adafruit_seesaw::{
     SeeSaw,
@@ -18,18 +21,18 @@ pub use adafruit_seesaw::{
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-pub struct NeoTrellis<I2C, DELAY> {
-    pub seesaw: SeeSaw<I2C, DELAY>,
+pub struct NeoTrellis<I2C> {
+    pub seesaw: SeeSaw<I2C>,
     pub neopixel_settings: NeoPixelSettings,
 }
 
-pub struct NeoPixels<'a, I2C, DELAY> {
-    seesaw: &'a mut SeeSaw<I2C, DELAY>,
+pub struct NeoPixels<'a, I2C> {
+    seesaw: &'a mut SeeSaw<I2C>,
     settings: &'a mut NeoPixelSettings,
 }
 
-pub struct KeyPad<'a, I2C, DELAY> {
-    seesaw: &'a mut SeeSaw<I2C, DELAY>,
+pub struct KeyPad<'a, I2C> {
+    seesaw: &'a mut SeeSaw<I2C>,
 }
 
 pub struct NeoPixelSettings {
@@ -37,12 +40,11 @@ pub struct NeoPixelSettings {
     led_type: ColorOrder,
 }
 
-impl<I2C, DELAY> NeoTrellis<I2C, DELAY>
+impl<I2C> NeoTrellis<I2C>
 where
     I2C: Read + Write,
-    DELAY: DelayUs<u32>,
 {
-    pub fn new(i2c: I2C, delay: DELAY, address: Option<u8>) -> Result<Self> {
+    pub fn new<DELAY: DelayUs<u32>>(i2c: I2C, delay: &mut DELAY, address: Option<u8>) -> Result<Self> {
         let neopixel_settings = NeoPixelSettings {
             leds_ct: 16,
             led_type: ColorOrder::GRB
@@ -50,11 +52,10 @@ where
 
         let mut seesaw = SeeSaw {
             i2c,
-            delay,
             address: address.unwrap_or_else(|| 0x2E),
         };
 
-        if seesaw.status_get_hwid()? == 0x55 {
+        if seesaw.status_get_hwid(delay)? == 0x55 {
             Ok(Self {
                 seesaw,
                 neopixel_settings,
@@ -64,28 +65,28 @@ where
         }
     }
 
-    pub fn neopixels(&mut self) -> NeoPixels<I2C, DELAY> {
+    pub fn neopixels(&mut self) -> NeoPixels<I2C> {
         NeoPixels {
             seesaw: &mut self.seesaw,
             settings: &mut self.neopixel_settings,
         }
     }
 
-    pub fn keypad(&mut self) -> KeyPad<I2C, DELAY> {
+    pub fn keypad(&mut self) -> KeyPad<I2C> {
         KeyPad {
             seesaw: &mut self.seesaw,
         }
     }
 
-    pub fn seesaw(&mut self) -> &mut SeeSaw<I2C, DELAY> {
+    pub fn seesaw(&mut self) -> &mut SeeSaw<I2C> {
         &mut self.seesaw
     }
 }
 
-impl<'a, I2C, DELAY> NeoPixels<'a, I2C, DELAY>
+impl<'a, I2C> NeoPixels<'a, I2C>
 where
     I2C: Read + Write,
-    DELAY: DelayUs<u32>,
+
 {
     pub fn set_speed(&'a mut self, speed: Speed) -> Result<&'a mut Self> {
         self.seesaw.neopixel_set_speed(speed)?;
@@ -136,20 +137,20 @@ where
     }
 }
 
-impl<'a, I2C, DELAY> KeyPad<'a, I2C, DELAY>
+impl<'a, I2C> KeyPad<'a, I2C>
 where
     I2C: Read + Write,
-    DELAY: DelayUs<u32>,
+
 {
-    pub fn pending_events(&mut self) -> Result<u8> {
-        self.seesaw.keypad_get_count()
+    pub fn pending_events<DELAY: DelayUs<u32>>(&mut self, delay: &mut DELAY) -> Result<u8> {
+        self.seesaw.keypad_get_count(delay)
     }
 
-    pub fn get_event(&mut self) -> Result<Option<KeyEvent>> {
-        if self.pending_events()? > 0 {
+    pub fn get_event<DELAY: DelayUs<u32>>(&mut self, delay: &mut DELAY) -> Result<Option<KeyEvent>> {
+        if self.pending_events(delay)? > 0 {
             let mut evt_raw = [0u8; 1];
 
-            self.seesaw.keypad_read_raw(&mut evt_raw)?;
+            self.seesaw.keypad_read_raw(&mut evt_raw, delay)?;
 
             let event = evt_raw[0] & 0b0000_0011;
             let event = Edge::from_u8(event)?;
@@ -158,16 +159,15 @@ where
 
             // What is this math even? Copy/paste from adafruit code
             let key = ((key) / 8) * 4 + ((key) % 8);
-
             Ok(Some(KeyEvent { key, event }))
         } else {
             Ok(None)
         }
     }
 
-    pub fn get_events(&mut self) -> Result<Events> {
+    pub fn get_events<DELAY: DelayUs<u32>>(&mut self, delay: &mut DELAY) -> Result<Events> {
         use core::cmp::min;
-        let ct = self.pending_events()?;
+        let ct = self.pending_events(delay)?;
         let mut retval = Events::new();
 
         if ct == 0 {
@@ -177,7 +177,7 @@ where
         let mut evt_raw = [0u8; MAX_EVENTS_USIZE];
         let ct = min(ct, MAX_EVENTS_U8);
 
-        self.seesaw.keypad_read_raw(&mut evt_raw[..ct as usize])?;
+        self.seesaw.keypad_read_raw(&mut evt_raw[..ct as usize], delay)?;
 
         for i in 0..(ct as usize) {
             let event = evt_raw[i] & 0b0000_0011;
@@ -218,6 +218,7 @@ where
 const MAX_EVENTS_USIZE: usize = 16;
 const MAX_EVENTS_U8: u8 = 16;
 
+#[derive(Format)]
 pub struct Events {
     count: u8,
     events: [KeyEvent; MAX_EVENTS_USIZE]
