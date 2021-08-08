@@ -88,17 +88,17 @@ where
     I2C: Read + Write,
 
 {
-    pub fn set_speed(&'a mut self, speed: Speed) -> Result<&'a mut Self> {
+    pub fn set_speed<'b>(&'b mut self, speed: Speed) -> Result<&'b mut Self> {
         self.seesaw.neopixel_set_speed(speed)?;
         Ok(self)
     }
 
-    pub fn set_pin(&'a mut self, pin: u8) -> Result<&'a mut Self> {
+    pub fn set_pin<'b>(&'b mut self, pin: u8) -> Result<&'b mut Self> {
         self.seesaw.neopixel_set_pin(pin)?;
         Ok(self)
     }
 
-    pub fn set_pixel_type(&'a mut self, ty: ColorOrder) -> Result<&'a mut Self> {
+    pub fn set_pixel_type<'b>(&'b mut self, ty: ColorOrder) -> Result<&'b mut Self> {
         self.settings.led_type = ty;
 
         self.seesaw.neopixel_set_buf_length_pixels(
@@ -109,7 +109,7 @@ where
         Ok(self)
     }
 
-    pub fn set_pixel_count(&'a mut self, count: u8) -> Result<&'a mut Self> {
+    pub fn set_pixel_count<'b>(&'b mut self, count: u8) -> Result<&'b mut Self> {
         self.settings.leds_ct = count;
 
         self.seesaw.neopixel_set_buf_length_pixels(
@@ -120,7 +120,7 @@ where
         Ok(self)
     }
 
-    pub fn set_pixel_rgb(&'a mut self, index: u8, red: u8, green: u8, blue: u8) -> Result<&'a mut Self> {
+    pub fn set_pixel_rgb<'b>(&'b mut self, index: u8, red: u8, green: u8, blue: u8) -> Result<&'b mut Self> {
         match self.settings.led_type {
             ColorOrder::RGB => self.seesaw.neopixel_write_buf_raw(3 * (index as u16), &[red, green, blue]),
             ColorOrder::GRB => self.seesaw.neopixel_write_buf_raw(3 * (index as u16), &[green, red, blue]),
@@ -131,7 +131,7 @@ where
         Ok(self)
     }
 
-    pub fn show(&'a mut self) -> Result<&'a mut Self> {
+    pub fn show<'b>(&'b mut self) -> Result<&'b mut Self> {
         self.seesaw.neopixel_show()?;
         Ok(self)
     }
@@ -196,7 +196,7 @@ where
         Ok(retval)
     }
 
-    pub fn enable_key_event(&'a mut self, key: u8, event: Edge) -> Result<&'a mut Self> {
+    pub fn enable_key_event<'b>(&'b mut self, key: u8, event: Edge) -> Result<&'b mut Self> {
         // What is this math even? Copy/paste from adafruit code
         let key = ((key) / 4) * 8 + ((key) % 4);
 
@@ -205,7 +205,7 @@ where
         Ok(self)
     }
 
-    pub fn disable_key_event(&'a mut self, key: u8, event: Edge) -> Result<&'a mut Self> {
+    pub fn disable_key_event<'b>(&'b mut self, key: u8, event: Edge) -> Result<&'b mut Self> {
         // What is this math even? Copy/paste from adafruit code
         let key = ((key) / 4) * 8 + ((key) % 4);
 
