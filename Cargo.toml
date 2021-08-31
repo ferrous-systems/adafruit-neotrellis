@@ -8,7 +8,6 @@ edition = "2018"
 
 [dependencies]
 embedded-hal = "0.2.3"
-nrf52840-hal = "0.12.2"
 adafruit-seesaw = { git ="https://github.com/ferrous-systems/adafruit-seesaw", branch = "main"}
 
 defmt = "0.2.0"
